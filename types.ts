@@ -1,4 +1,3 @@
-
 export enum TaskPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
@@ -7,7 +6,7 @@ export enum TaskPriority {
 
 export type RecurrenceRule = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening';
-export type View = 'today' | 'ideas' | 'projects' | 'calendar' | 'analytics' | 'journal' | 'employees' | 'settings';
+export type View = 'today' | 'ideas' | 'projects' | 'calendar' | 'analytics' | 'journal' | 'employees' | 'settings' | 'external-brain' | 'knowledge-base' | 'finance' | 'notes' | 'ai-task-creation' | 'personalization' | 'crm' | 'kanban';
 
 export interface Task {
   id: string;
@@ -23,6 +22,7 @@ export interface Task {
   assignedTo?: string;
   originalText?: string;
   durationMinutes?: number;
+  kanbanColumnId?: string;
 }
 
 export interface Project {
@@ -78,7 +78,75 @@ export interface Holiday {
   isPublic: boolean;
 }
 
-// WASEWORM OC Types
+export interface KnowledgeNote {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TransactionType = 'income' | 'expense';
+
+export interface Account {
+  id: string;
+  name: string;
+  balance: number;
+  type: 'business' | 'personal';
+}
+
+export interface FinanceCategory {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  type: TransactionType;
+}
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: TransactionType;
+  categoryId: string;
+  date: Date;
+  description: string;
+  accountId: string;
+  recurrence?: RecurrenceRule;
+}
+
+export interface FinancialGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number; // This will be calculated from account balances
+  createdAt: Date;
+}
+
+export interface Contact {
+    id: string;
+    name: string;
+    company?: string;
+    email?: string;
+    phone?: string;
+    notes?: string;
+    createdAt: Date;
+}
+
+export interface Settings {
+    theme: 'light' | 'dark' | 'system';
+    weekendDays: number[];
+    accentColor: string;
+    wallpaper: string;
+}
+
+export interface Notification {
+    id: string;
+    message: string;
+    icon: string;
+    timestamp: Date;
+    isRead: boolean;
+}
+
 export interface AppDefinition {
   id: View;
   name: string;
@@ -94,4 +162,45 @@ export interface WindowInstance {
   isMaximized: boolean;
   position: { x: number; y: number };
   size: { width: number | string; height: number | string };
+  initialSubView?: View;
+}
+
+export type CommandPaletteAction = {
+  id: string;
+  type: 'app' | 'task' | 'action';
+  title: string;
+  icon: string;
+  section: 'Приложения' | 'Задачи' | 'Действия';
+  perform: () => void;
+  keywords?: string;
+  task?: Task; // for task actions
+};
+
+export enum WidgetType {
+  CLOCK = 'CLOCK',
+  AGENDA = 'AGENDA',
+  PROJECT_PROGRESS = 'PROJECT_PROGRESS',
+  NOTEPAD = 'NOTEPAD',
+  FINANCE_OVERVIEW = 'FINANCE_OVERVIEW',
+  QUOTE = 'QUOTE',
+  WEATHER = 'WEATHER',
+  STREAK = 'STREAK',
+  AI_TASK = 'AI_TASK',
+}
+
+export interface WidgetInstance {
+  id: string;
+  type: WidgetType;
+  position: { x: number; y: number };
+  size: { width: number | string; height: number | string };
+  config?: any;
+}
+
+export interface WidgetDefinition {
+  type: WidgetType;
+  name: string;
+  description: string;
+  icon: string;
+  defaultSize: { width: number; height: number };
+  minSize: { width: number; height: number };
 }

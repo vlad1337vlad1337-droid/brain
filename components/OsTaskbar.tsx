@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { AppDefinition, WindowInstance, StreakData, View } from '../types';
+import { WindowInstance, StreakData, View, Settings } from '../types';
 import { APPLICATIONS } from '../constants';
 import { StreakCounter } from './StreakCounter';
 
@@ -9,21 +8,23 @@ interface OsTaskbarProps {
   openApp: (appId: View) => void;
   focusWindow: (id: string) => void;
   streakData: StreakData;
-  theme: 'light' | 'dark' | 'system';
-  onSetTheme: (theme: 'light' | 'dark' | 'system') => void;
+  settings: Settings;
+  onUpdateSettings: (newSettings: Partial<Settings>) => void;
   onOpenNewTask: () => void;
-  isBurntOutMode: boolean;
-  onSetBurntOutMode: (mode: boolean) => void;
+  isDesktopEditing: boolean;
+  onSetDesktopEditing: (editing: boolean) => void;
+  onToggleNotifications: () => void;
+  unreadCount: number;
 }
 
-const ThemeIcon: React.FC<{ theme: OsTaskbarProps['theme'] }> = ({ theme }) => {
+const ThemeIcon: React.FC<{ theme: Settings['theme'] }> = ({ theme }) => {
     if (theme === 'light') return <i className="fas fa-sun"></i>;
     if (theme === 'dark') return <i className="fas fa-moon"></i>;
     return <i className="fas fa-desktop"></i>;
 };
 
 export const OsTaskbar: React.FC<OsTaskbarProps> = (props) => {
-  const { windows, openApp, focusWindow, streakData, theme, onSetTheme, onOpenNewTask, isBurntOutMode, onSetBurntOutMode } = props;
+  const { windows, openApp, focusWindow, streakData, settings, onUpdateSettings, onOpenNewTask, isDesktopEditing, onSetDesktopEditing, onToggleNotifications, unreadCount } = props;
   const [time, setTime] = useState(new Date());
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
@@ -31,7 +32,7 @@ export const OsTaskbar: React.FC<OsTaskbarProps> = (props) => {
   const themeMenuRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000 * 30); // Update every 30 seconds
+    const timer = setInterval(() => setTime(new Date()), 1000 * 30);
     return () => clearInterval(timer);
   }, []);
 
@@ -49,7 +50,7 @@ export const OsTaskbar: React.FC<OsTaskbarProps> = (props) => {
       <div className="flex items-center gap-1">
         <div className="relative" ref={startMenuRef}>
             <button onClick={() => setIsStartMenuOpen(p => !p)} className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${isStartMenuOpen ? 'bg-black/10 dark:bg-white/10' : 'hover:bg-black/10 dark:hover:bg-white/10'}`}>
-                <i className="fa-solid fa-brain text-xl text-zinc-800 dark:text-zinc-100"></i>
+                <i className="fa-solid fa-wave-square text-xl text-zinc-800 dark:text-zinc-100"></i>
             </button>
              {isStartMenuOpen && (
                 <div className="absolute bottom-full mb-2 w-72 bg-zinc-100/90 dark:bg-zinc-800/90 backdrop-blur-lg rounded-lg shadow-2xl p-2 border border-zinc-200 dark:border-zinc-700 animate-fade-in-up">
@@ -74,7 +75,7 @@ export const OsTaskbar: React.FC<OsTaskbarProps> = (props) => {
             return (
                 <button key={win.id} onClick={() => focusWindow(win.id)} className={`h-9 px-3 rounded-md flex items-center gap-2 transition-colors relative ${isFocused && !win.isMinimized ? 'bg-black/10 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`} title={app.name}>
                     <i className={`fa-solid ${app.icon} text-zinc-700 dark:text-zinc-200`}></i>
-                    {!win.isMinimized && isFocused && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-violet-500 rounded-full"></div>}
+                    {!win.isMinimized && isFocused && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent-500 rounded-full"></div>}
                     {win.isMinimized && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-zinc-500 rounded-full"></div>}
                 </button>
             )
@@ -82,22 +83,27 @@ export const OsTaskbar: React.FC<OsTaskbarProps> = (props) => {
       </div>
 
       <div className="flex items-center gap-2">
-        <button onClick={onOpenNewTask} className="h-9 px-3 rounded-lg flex items-center gap-2 transition-colors bg-violet-500 text-white hover:bg-violet-600 font-semibold text-sm">
+        <button onClick={onOpenNewTask} className="h-9 px-3 rounded-lg flex items-center gap-2 transition-colors bg-accent-500 text-white hover:bg-accent-600 font-semibold text-sm">
             <i className="fas fa-plus"></i>
             <span className="hidden sm:inline">Новая задача</span>
         </button>
-        <button onClick={() => onSetBurntOutMode(!isBurntOutMode)} className={`w-10 h-9 flex items-center justify-center rounded-lg transition-colors ${isBurntOutMode ? 'text-violet-500 bg-violet-100 dark:bg-violet-900/50' : 'text-zinc-500 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'}`} title="Режим выгорания">
-            <i className="fa-solid fa-brain-circuit"></i>
+         <button onClick={() => onSetDesktopEditing(!isDesktopEditing)} className={`h-9 px-3 rounded-lg flex items-center gap-2 transition-colors text-sm font-semibold ${isDesktopEditing ? 'text-accent-500 bg-accent-100 dark:bg-accent-900/50' : 'text-zinc-500 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'}`} title="Настроить виджеты">
+            <i className="fa-solid fa-grip"></i>
+            <span className="hidden sm:inline">Виджеты</span>
+        </button>
+        <button onClick={onToggleNotifications} className="w-10 h-9 flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/5 relative" title="Уведомления">
+            <i className="fa-solid fa-bell"></i>
+            {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>}
         </button>
         <div className="relative" ref={themeMenuRef}>
             <button onClick={() => setIsThemeMenuOpen(p => !p)} className="w-10 h-9 flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/5" title="Сменить тему">
-                <ThemeIcon theme={theme} />
+                <ThemeIcon theme={settings.theme} />
             </button>
              {isThemeMenuOpen && (
                 <div className="absolute right-0 bottom-full mb-2 w-40 bg-zinc-100/90 dark:bg-zinc-800/90 backdrop-blur-lg rounded-lg shadow-2xl p-1 border border-zinc-200 dark:border-zinc-700 animate-fade-in-up">
-                  <button onClick={() => { onSetTheme('light'); setIsThemeMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-sm rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-3"><i className="fas fa-sun w-5 text-center"></i> Светлая</button>
-                  <button onClick={() => { onSetTheme('dark'); setIsThemeMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-sm rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-3"><i className="fas fa-moon w-5 text-center"></i> Темная</button>
-                  <button onClick={() => { onSetTheme('system'); setIsThemeMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-sm rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-3"><i className="fas fa-desktop w-5 text-center"></i> Системная</button>
+                  <button onClick={() => { onUpdateSettings({ theme: 'light' }); setIsThemeMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-sm rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-3"><i className="fas fa-sun w-5 text-center"></i> Светлая</button>
+                  <button onClick={() => { onUpdateSettings({ theme: 'dark' }); setIsThemeMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-sm rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-3"><i className="fas fa-moon w-5 text-center"></i> Темная</button>
+                  <button onClick={() => { onUpdateSettings({ theme: 'system' }); setIsThemeMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-sm rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-3"><i className="fas fa-desktop w-5 text-center"></i> Системная</button>
                 </div>
               )}
         </div>

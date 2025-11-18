@@ -1,12 +1,5 @@
 import { Task, RecurrenceRule } from '../types';
-
-export const isSameDay = (d1: Date, d2: Date): boolean => {
-    const date1 = new Date(d1);
-    const date2 = new Date(d2);
-    date1.setHours(0, 0, 0, 0);
-    date2.setHours(0, 0, 0, 0);
-    return date1.getTime() === date2.getTime();
-}
+import { isSameDay } from '../utils/dateUtils';
 
 export const getNextDueDate = (currentDueDate: Date, rule: RecurrenceRule): Date => {
     const nextDate = new Date(currentDueDate);

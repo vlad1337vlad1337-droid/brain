@@ -24,16 +24,14 @@ const emptyTask: Omit<Task, 'id'> = {
   priority: TaskPriority.MEDIUM,
 };
 
-const getISODate = (date?: Date) => {
+const getISODateTimeLocal = (date?: Date) => {
     if (!date) return '';
     const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-  
-const getTodayISO = () => getISODate(new Date());
+    // Adjust for timezone offset to display correctly in local time
+    const tzoffset = d.getTimezoneOffset() * 60000; //offset in milliseconds
+    const localISOTime = new Date(d.getTime() - tzoffset).toISOString().slice(0, 16);
+    return localISOTime;
+};
 
 const TimeOfDaySelector: React.FC<{ value?: TimeOfDay, onChange: (value: TimeOfDay | undefined) => void }> = ({ value, onChange }) => {
     const options: { id: TimeOfDay; icon: string; label: string }[] = [
@@ -109,17 +107,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSaveTask, onDel
         return;
     }
     
-    let deadline = currentTask.deadline ? new Date(currentTask.deadline) : undefined;
-    if (deadline && !isNaN(deadline.getTime())) {
-        if (currentTask.timeOfDay && !initialState.prefill?.timeOfDay) { 
-            deadline.setHours(0, 0, 0, 0); 
-            switch(currentTask.timeOfDay) {
-                case 'morning': deadline.setHours(9); break;
-                case 'afternoon': deadline.setHours(14); break;
-                case 'evening': deadline.setHours(20); break;
-            }
-        }
-    }
+    const deadline = currentTask.deadline ? new Date(currentTask.deadline) : undefined;
 
     const taskToSave: Task = {
         id: currentTask.id || `t${Date.now()}`,
@@ -146,9 +134,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSaveTask, onDel
   }
   
   const setDeadline = (when: 'today' | 'tomorrow') => {
-      const newDate = new Date();
+      const newDate = currentTask.deadline ? new Date(currentTask.deadline) : new Date();
+      const basisDate = new Date();
       if (when === 'tomorrow') {
-          newDate.setDate(newDate.getDate() + 1);
+          basisDate.setDate(basisDate.getDate() + 1);
+      }
+      newDate.setFullYear(basisDate.getFullYear(), basisDate.getMonth(), basisDate.getDate());
+
+      // If no time was set previously, default to 9am.
+      if (!currentTask.deadline) {
+          newDate.setHours(9, 0, 0, 0);
       }
       updateField('deadline', newDate);
   }
@@ -184,13 +179,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({ onClose, onSaveTask, onDel
                 <div className="flex gap-2">
                     <input
                         id="deadline"
-                        type="date"
-                        min={getTodayISO()}
-                        value={getISODate(currentTask.deadline)}
+                        type="datetime-local"
+                        value={getISODateTimeLocal(currentTask.deadline)}
                         onChange={e => {
                             if (e.target.value) {
-                                const [year, month, day] = e.target.value.split('-').map(Number);
-                                updateField('deadline', new Date(year, month - 1, day));
+                                updateField('deadline', new Date(e.target.value));
                             } else {
                                 updateField('deadline', undefined);
                             }

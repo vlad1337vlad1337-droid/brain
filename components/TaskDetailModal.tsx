@@ -67,7 +67,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, projects
                             <DetailItem 
                                 icon="fa-calendar-day" 
                                 label="Крайний срок"
-                                value={new Date(task.deadline).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                value={new Date(task.deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             />
                         )}
                          <DetailItem 

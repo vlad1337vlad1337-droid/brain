@@ -1,8 +1,8 @@
-
 import React, { useMemo } from 'react';
 import { Task, Employee, Project, Category } from '../types';
 import { TaskCard } from './TaskCard';
 import { EmptyState } from './EmptyState';
+import { isSameDay } from '../utils/dateUtils';
 
 interface EmployeeViewProps {
   tasks: Task[];
@@ -14,14 +14,6 @@ interface EmployeeViewProps {
   onEditTask: (task: Task) => void;
   onViewTask: (task: Task) => void;
   onPostponeTask: (taskId: string) => void;
-}
-
-const isSameDay = (d1: Date, d2: Date): boolean => {
-    const date1 = new Date(d1);
-    const date2 = new Date(d2);
-    date1.setHours(0, 0, 0, 0);
-    date2.setHours(0, 0, 0, 0);
-    return date1.getTime() === date2.getTime();
 }
 
 const EmployeeCard: React.FC<Omit<EmployeeViewProps, 'employees'> & { employee: Employee }> =
@@ -45,18 +37,18 @@ const EmployeeCard: React.FC<Omit<EmployeeViewProps, 'employees'> & { employee: 
     };
 
     return (
-        <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-sm flex flex-col">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm flex flex-col">
             <div className="flex items-start justify-between mb-4">
                 <div>
-                    <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
                         <i className={`${employee.avatar || 'fa-solid fa-user'}`} style={{color: employee.color}}></i>
                         <span>{employee.name}</span>
                     </h2>
-                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         {activeTasks.length} в работе, {completedToday.length} завершено сегодня
                     </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <i className="fa-solid fa-check-circle text-green-500"></i>
                     <span>{completedCount}/{employeeTasks.length}</span>
                 </div>
@@ -65,7 +57,7 @@ const EmployeeCard: React.FC<Omit<EmployeeViewProps, 'employees'> & { employee: 
             <div className="space-y-4 flex-grow">
                 {activeTasks.length > 0 && (
                     <div>
-                         <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-2">Активные задачи</h3>
+                         <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Активные задачи</h3>
                          <div className="space-y-2.5">
                             {activeTasks.map(task => (
                                 <TaskCard
@@ -85,7 +77,7 @@ const EmployeeCard: React.FC<Omit<EmployeeViewProps, 'employees'> & { employee: 
                 
                 {completedToday.length > 0 && (
                     <div>
-                         <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-2">Выполнено сегодня</h3>
+                         <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Выполнено сегодня</h3>
                          <div className="space-y-2.5">
                             {completedToday.map(task => (
                                 <TaskCard
@@ -139,10 +131,10 @@ export const EmployeeView: React.FC<EmployeeViewProps> = (props) => {
         </div>
         
         {unassignedTasks.length > 0 && (
-            <div className="bg-white dark:bg-zinc-800 p-6 rounded-2xl shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                    <i className="fa-solid fa-inbox text-zinc-800 dark:text-zinc-100 text-xl"></i>
-                    <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100">Без исполнителя</h2>
+                    <i className="fa-solid fa-inbox text-slate-800 dark:text-slate-100 text-xl"></i>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Без исполнителя</h2>
                 </div>
                 <div className="space-y-3">
                     {unassignedTasks.map(task => (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Task, Project, Category } from '../types';
 import { TaskCard } from './TaskCard';
 import { EmptyState } from './EmptyState';
+import { isSameDay } from '../utils/dateUtils';
 
 interface CalendarSidebarProps {
   selectedDate: Date | null;
@@ -16,11 +17,6 @@ interface CalendarSidebarProps {
   onClose: () => void;
   onPostponeTask: (taskId: string) => void;
 }
-
-const isSameDay = (d1?: Date, d2?: Date) => {
-    if (!d1 || !d2) return false;
-    return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
-};
 
 export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
     const { selectedDate, tasks, projects, categories, onEditTask, onAddTask, onUpdateTask, onSetFocusTask, onDragStart, onClose, onPostponeTask } = props;
@@ -39,8 +35,8 @@ export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
     if (selectedDate) {
         const tasksForDay = tasks.filter(t => t.deadline && isSameDay(new Date(t.deadline), selectedDate));
         return (
-            <div className="w-96 flex-shrink-0 bg-white dark:bg-zinc-900 p-4 flex flex-col border-l border-zinc-200 dark:border-zinc-800 animate-fade-in">
-                <div className="flex justify-between items-center mb-4">
+            <div className="w-96 flex-shrink-0 bg-white dark:bg-zinc-900 p-4 flex flex-col border-l border-zinc-200 dark:border-zinc-800 animate-fade-in h-full">
+                <div className="flex justify-between items-center mb-4 flex-shrink-0">
                     <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
                         {selectedDate.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </h3>
@@ -48,7 +44,7 @@ export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-                <div className="flex-1 overflow-y-auto space-y-2 -mr-2 pr-2 hide-scrollbar">
+                <div className="flex-1 overflow-y-auto space-y-2 -mr-2 pr-2 hide-scrollbar min-h-0 flex flex-col">
                     {tasksForDay.length > 0 ? (
                         tasksForDay.map(task => (
                             <TaskCard
@@ -63,15 +59,17 @@ export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
                             />
                         ))
                     ) : (
-                        <EmptyState
-                            illustration="calendar"
-                            message="На этот день нет запланированных задач."
-                        />
+                        <div className="flex-grow flex items-center justify-center">
+                            <EmptyState
+                                illustration="calendar"
+                                message="На этот день нет запланированных задач."
+                            />
+                        </div>
                     )}
                 </div>
-                <button onClick={() => onAddTask(selectedDate)} className="mt-4 w-full py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors shadow-sm flex items-center justify-center font-semibold">
+                <button onClick={() => onAddTask(selectedDate)} className="mt-4 w-full py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors shadow-sm flex items-center justify-center font-semibold flex-shrink-0">
                     <i className="fas fa-plus mr-2"></i>
-                    Добавить задачу
+                    Новая задача
                 </button>
             </div>
         )
@@ -80,12 +78,12 @@ export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
     const unscheduledTasks = tasks.filter(task => !task.deadline && !task.isDone);
     return (
         <div 
-            className={`w-96 flex-shrink-0 bg-white dark:bg-zinc-900 p-4 flex flex-col border-l border-zinc-200 dark:border-zinc-800 transition-colors animate-fade-in ${isDragOver ? 'bg-violet-50 dark:bg-violet-900/50' : ''}`}
+            className={`w-96 flex-shrink-0 bg-white dark:bg-zinc-900 p-4 flex flex-col border-l border-zinc-200 dark:border-zinc-800 transition-colors animate-fade-in h-full ${isDragOver ? 'bg-violet-50 dark:bg-violet-900/50' : ''}`}
             onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
             onDragLeave={() => setIsDragOver(false)}
             onDrop={handleDrop}
         >
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center mb-2 flex-shrink-0">
                  <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-100 flex items-center">
                     <i className="fa-solid fa-inbox mr-2"></i>Нераспределенные
                 </h3>
@@ -93,8 +91,8 @@ export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
                     <i className="fas fa-times"></i>
                 </button>
             </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Перетащите задачу на календарь, чтобы запланировать, или сюда, чтобы убрать дедлайн.</p>
-            <div className="flex-1 overflow-y-auto space-y-2 -mr-2 pr-2 hide-scrollbar">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 flex-shrink-0">Перетащите задачу на календарь, чтобы запланировать, или сюда, чтобы убрать дедлайн.</p>
+            <div className="flex-1 overflow-y-auto space-y-2 -mr-2 pr-2 hide-scrollbar min-h-0 flex flex-col">
                 {unscheduledTasks.length > 0 ? unscheduledTasks.map(task => (
                     <div
                         key={task.id}
@@ -105,10 +103,12 @@ export const CalendarSidebar: React.FC<CalendarSidebarProps> = (props) => {
                         <p className="font-medium text-sm text-zinc-800 dark:text-zinc-200">{task.title}</p>
                     </div>
                 )) : (
-                    <EmptyState
-                        illustration="all-done"
-                        message="Нет задач без крайнего срока. Все спланировано!"
-                    />
+                     <div className="flex-grow flex items-center justify-center">
+                        <EmptyState
+                            illustration="all-done"
+                            message="Нет задач без крайнего срока. Все спланировано!"
+                        />
+                    </div>
                 )}
             </div>
         </div>

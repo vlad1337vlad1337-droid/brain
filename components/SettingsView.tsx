@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Project, Category } from '../types';
 import { ICON_LIST, COLOR_PALETTE } from '../constants';
@@ -235,7 +234,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('projects');
   
   const TABS: { id: SettingsTab; label: string; icon: string }[] = [
-      { id: 'projects', label: 'Проекты', icon: 'fa-folder-open' },
+      { id: 'projects', label: 'Проекты', icon: 'fa-diagram-project' },
       { id: 'categories', label: 'Категории', icon: 'fa-tags' },
       { id: 'general', label: 'Общие', icon: 'fa-sliders' },
   ];

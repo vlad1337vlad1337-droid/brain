@@ -1,19 +1,40 @@
-
 import React from 'react';
-import { AppDefinition, WindowInstance, View } from '../types';
+import { AppDefinition, WindowInstance, View, Task, StreakData, Project, Category, Employee, WidgetInstance, Account, WidgetDefinition, Transaction } from '../types';
 import { APPLICATIONS } from '../constants';
 import { OsWindow } from './OsWindow';
+import { WidgetWrapper } from './WidgetWrapper';
+import { WidgetGallery } from './WidgetGallery';
 
-interface OsDesktopProps {
+// Fix: Exported OsDesktopProps to be used in WidgetWrapper.tsx
+export interface OsDesktopProps {
   windows: WindowInstance[];
-  renderApp: (appId: View) => React.ReactNode;
+  renderApp: (instance: WindowInstance) => React.ReactNode;
   openApp: (appId: View) => void;
   onClose: (id: string) => void;
   onFocus: (id: string) => void;
   onMinimize: (id: string) => void;
   onMaximize: (id: string) => void;
-  onDragStop: (id: string, pos: { x: number, y: number }) => void;
-  onResizeStop: (id: string, size: { width: number | string, height: number | string }, pos: { x: number, y: number }) => void;
+  onDragStop: (id: string, pos: { x: number; y: number }) => void;
+  onResizeStop: (id: string, size: { width: number | string; height: number | string }, pos: { x: number; y: number }) => void;
+  
+  // Widget System Props
+  widgets: WidgetInstance[];
+  isDesktopEditing: boolean;
+  onAddWidget: (widgetDef: WidgetDefinition) => void;
+  onRemoveWidget: (widgetId: string) => void;
+  onUpdateWidget: (widget: WidgetInstance) => void;
+
+  // Data contexts for widgets
+  tasks: Task[];
+  projects: Project[];
+  categories: Category[];
+  employees: Employee[];
+  accounts: Account[];
+  streakData: StreakData;
+  onAddTask: (task: Task) => Promise<void>;
+  onOpenNewTask: () => void;
+  onUpdateTask: (task: Task) => void;
+  transactions: Transaction[];
 }
 
 const DesktopIcon: React.FC<{ app: AppDefinition; onOpen: (id: View) => void }> = ({ app, onOpen }) => (
@@ -26,26 +47,75 @@ const DesktopIcon: React.FC<{ app: AppDefinition; onOpen: (id: View) => void }> 
   </button>
 );
 
-export const OsDesktop: React.FC<OsDesktopProps> = ({ windows, renderApp, openApp, ...windowHandlers }) => {
+
+// --- MAIN DESKTOP COMPONENT ---
+export const OsDesktop: React.FC<OsDesktopProps> = (props) => {
+  const { 
+    windows, renderApp, openApp, 
+    widgets, isDesktopEditing, onAddWidget, onRemoveWidget, onUpdateWidget,
+    ...windowHandlers 
+  } = props;
+  
+  const widgetDataContext = {
+    tasks: props.tasks,
+    projects: props.projects,
+    categories: props.categories,
+    employees: props.employees,
+    accounts: props.accounts,
+    streakData: props.streakData,
+    onAddTask: props.onAddTask,
+    onOpenNewTask: props.onOpenNewTask,
+    onUpdateTask: props.onUpdateTask,
+    transactions: props.transactions,
+    openApp: props.openApp,
+  };
+
   return (
     <div className="absolute inset-0 h-full w-full">
-      <div className="p-4 flex flex-col flex-wrap gap-2">
-        {APPLICATIONS.map(app => (
-          <DesktopIcon key={app.id} app={app} onOpen={openApp} />
-        ))}
-      </div>
+        <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
+            <i className="fa-solid fa-plus text-5xl text-white/20 drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]"></i>
+        </div>
+    
+        {/* Icons Layer */}
+        <div className="absolute top-0 left-0 p-4 flex flex-col flex-wrap gap-2 pointer-events-auto z-10">
+            {APPLICATIONS.map(app => (
+                <DesktopIcon key={app.id} app={app} onOpen={openApp} />
+            ))}
+        </div>
 
-      {windows.map(instance => {
-        if (instance.isMinimized) return null;
-        const app = APPLICATIONS.find(a => a.id === instance.appId);
-        if (!app) return null;
+        {/* Widgets Layer */}
+        <div className="absolute inset-0 bottom-12 z-5">
+          {widgets.map(widget => (
+            <WidgetWrapper 
+              key={widget.id}
+              widget={widget}
+              isEditing={isDesktopEditing}
+              onRemove={onRemoveWidget}
+              onUpdate={onUpdateWidget}
+              dataContext={widgetDataContext}
+            />
+          ))}
+        </div>
 
-        return (
-          <OsWindow key={instance.id} instance={instance} app={app} {...windowHandlers}>
-            {renderApp(instance.appId)}
-          </OsWindow>
-        );
-      })}
+        {/* Windows Layer (on top) */}
+        {windows.map(instance => {
+            if (instance.isMinimized) return null;
+            const app = APPLICATIONS.find(a => a.id === instance.appId);
+            if (!app) return null;
+
+            return (
+            <OsWindow key={instance.id} instance={instance} app={app} {...windowHandlers}>
+                {renderApp(instance)}
+            </OsWindow>
+            );
+        })}
+        
+        {/* Widget Gallery Layer (highest) */}
+        {isDesktopEditing && (
+            <WidgetGallery
+                onAddWidget={onAddWidget}
+            />
+        )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from 'react';
 import { Rnd } from 'react-rnd';
 import { AppDefinition, WindowInstance } from '../types';
@@ -60,7 +59,7 @@ export const OsWindow: React.FC<OsWindowProps> = ({ instance, app, children, onC
           <button onClick={() => onClose(instance.id)} className="w-6 h-6 rounded-full hover:bg-red-500 hover:text-white flex items-center justify-center text-zinc-600 dark:text-zinc-300" title="Закрыть"><i className="fa-solid fa-xmark text-sm"></i></button>
         </div>
       </div>
-      <div className="window-content flex-1 overflow-auto bg-zinc-50 dark:bg-zinc-800/50">
+      <div className="window-content flex-1 overflow-auto bg-zinc-100 dark:bg-zinc-800">
         {children}
       </div>
     </Rnd>

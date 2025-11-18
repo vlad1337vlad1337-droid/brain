@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Task, Project, Category } from '../types';
 import { calculateStats } from '../services/analyticsService';
@@ -15,6 +14,7 @@ import {
   ArcElement,
   PointElement,
   LineElement,
+  Filler,
 } from 'chart.js';
 
 ChartJS.register(
@@ -26,7 +26,8 @@ ChartJS.register(
   Legend,
   ArcElement,
   PointElement,
-  LineElement
+  LineElement,
+  Filler
 );
 
 interface AnalyticsViewProps {
